@@ -69,8 +69,10 @@ class HaxBallExtendedHeadless {
 
     /*EXTENDED HEADLESS PRIVATE METHODS*/
 
-    #getTeam(team) {
-        if(![0,1,2].includes(team)) throw new Error("team must be 0, 1 or 2");
+    #isValidTeam = (team) => [0, 1, 2].includes(team);
+
+    #getTeam = (team) => {
+        if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
         const playerList = this.#room.getPlayerList();
         return playerList.filter(player => player.team === team);
     };
@@ -78,8 +80,63 @@ class HaxBallExtendedHeadless {
     /*EXTENDED HEADLESS PUBLIC METHODS*/
 
     getSpecTeam = () => this.#getTeam(0);
+
     getRedTeam = () => this.#getTeam(1);
+
     getBlueTeam = () => this.#getTeam(2);
+
+    moveNextSpecToTeam = (team) => {
+        if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
+
+        const nextSpec = this.getSpecTeam()[0];
+
+        if (nextSpec) this.#room.setPlayerTeam(nextSpec.id, team);
+
+    };
+
+
+    moveNextNSpecsToTeam = (team, N) => {
+        if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
+
+        const nextNSpecs = this.getSpecTeam().slice(0, N);
+
+        nextNSpecs.forEach(spec => this.#room.setPlayerTeam(spec.id, team));
+
+    };
+
+
+    moveAllSpecsToTeam = (team) => {
+
+        if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
+
+        this.getSpecTeam().forEach(spec => this.#room.setPlayerTeam(spec.id, team));
+    };
+
+
+
+    moveAllRedTeamToSpecs = () => this.getRedTeam().forEach(redPlayer => this.#room.setPlayerTeam(redPlayer.id, 0));
+
+    moveAllBlueTeamToSpecs = () => this.getBlueTeam().forEach(bluePlayer => this.#room.setPlayerTeam(bluePlayer.id, 0));
+
+
+    moveNRedTeamPlayersToSpecs = (N) => {
+
+        const slicedRedTeam = this.getRedTeam().slice(0, N);
+
+        slicedRedTeam.forEach(redPlayer => this.#room.setPlayerTeam(redPlayer.id, 0));
+    };
+
+    moveNBlueTeamPlayersToSpecs = (N) => {
+
+        const slicedBlueTeam = this.getBlueTeam().slice(0, N);
+
+        slicedBlueTeam.forEach(bluePlayer => this.#room.setPlayerTeam(bluePlayer.id, 0));
+    };
+
+    getPlayersNumber = () => this.#room.getPlayerList().length;
+
+    hasAdmin = () => this.#room.getPlayerList.some(player => player.admin === true);
+    hasNotAdmin = () => !this.hasAdmin();
 
 };
 
