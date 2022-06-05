@@ -2,6 +2,10 @@ class HaxBallExtendedHeadless {
 
     #room = null;
 
+    #connected_players = [];
+
+    #allowDU = true;
+
     constructor(room) {
 
         this.#room = room;
@@ -10,8 +14,23 @@ class HaxBallExtendedHeadless {
         this.CollisionFlags = this.#room.CollisionFlags;
 
         /*TRADITIONAL EVENTS HANDLER*/
-        this.#room.onPlayerJoin = (player) => this.onPlayerJoin && this.onPlayerJoin(player);
-        this.#room.onPlayerLeave = (player) => this.onPlayerLeave && this.onPlayerLeave(player);
+        this.#room.onPlayerJoin = (player) => {
+
+            if (!this.#allowDU && this.#isDU(player)) {
+                room.kickPlayer(player.id, "DU", false)
+            } else {
+                this.#connected_players.push(player);
+            };
+
+
+            this.onPlayerJoin && this.onPlayerJoin(player)
+        };
+
+        this.#room.onPlayerLeave = (playerLeft) => {
+
+            this.#connected_players = [...this.#connected_players].filter(player => player.id !== playerLeft.id)
+            this.onPlayerLeave && this.onPlayerLeave(player)
+        };
         this.#room.onTeamVictory = (scores) => this.onTeamVictory && this.onTeamVictory(scores);
         this.#room.onPlayerChat = (player, message) => this.onPlayerChat && this.onPlayerChat(player, message);
         this.#room.onPlayerBallKick = (player) => this.onPlayerBallKick && this.onPlayerBallKick(player);
@@ -29,7 +48,6 @@ class HaxBallExtendedHeadless {
         this.#room.onStadiumChange = (newStadiumName, byPlayer) => this.onStadiumChange && this.onStadiumChange(newStadiumName, byPlayer);
         this.#room.onRoomLink = (url) => this.onRoomLink && onRoomLink(url);
         this.#room.onKickRateLimitSet = (min, rate, burst, byPlayer) => this.onKickRateLimitSet && this.onKickRateLimitSet(min, rate, burst, byPlayer);
-
     }
 
     /*TRADITIONAL ROOM METHODS*/
@@ -67,7 +85,7 @@ class HaxBallExtendedHeadless {
     getDiscCount = () => this.#room.getDiscCount();
 
 
-    /*EXTENDED HEADLESS PRIVATE METHODS*/
+    /*------------------------------------EXTENDED HEADLESS PRIVATE METHODS----------------------------------------------*/
 
     #isValidTeam = (team) => [0, 1, 2].includes(team);
 
@@ -77,13 +95,23 @@ class HaxBallExtendedHeadless {
         return playerList.filter(player => player.team === team);
     };
 
-    /*EXTENDED HEADLESS PUBLIC METHODS*/
+    #isDU = (player) => {
+        return this.#connected_players.some(cP => cP.name === player.name || cP.auth === player.auth || cP.conn === player.conn);
+    };
+
+    /*----------------------------------------EXTENDED HEADLESS PUBLIC METHODS---------------------------------------------*/
 
     getSpecTeam = () => this.#getTeam(0);
 
+
+
     getRedTeam = () => this.#getTeam(1);
 
+
+
     getBlueTeam = () => this.#getTeam(2);
+
+
 
     moveNextSpecToTeam = (team) => {
         if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
@@ -95,6 +123,7 @@ class HaxBallExtendedHeadless {
     };
 
 
+
     moveNextNSpecsToTeam = (team, N) => {
         if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
 
@@ -103,6 +132,7 @@ class HaxBallExtendedHeadless {
         nextNSpecs.forEach(spec => this.#room.setPlayerTeam(spec.id, team));
 
     };
+
 
 
     moveAllSpecsToTeam = (team) => {
@@ -116,7 +146,18 @@ class HaxBallExtendedHeadless {
 
     moveAllRedTeamToSpecs = () => this.getRedTeam().forEach(redPlayer => this.#room.setPlayerTeam(redPlayer.id, 0));
 
+
+
     moveAllBlueTeamToSpecs = () => this.getBlueTeam().forEach(bluePlayer => this.#room.setPlayerTeam(bluePlayer.id, 0));
+
+
+
+    moveAllRedTeamToBlueTeam = () => this.getRedTeam().forEach(redPlayer => this.#room.setPlayerTeam(redPlayer.id, 2));
+
+
+
+    moveAllBlueTeamToRedTeam = () => this.getBlueTeam().forEach(bluePlayer => this.#room.setPlayerTeam(bluePlayer.id, 1));
+
 
 
     moveNRedTeamPlayersToSpecs = (N) => {
@@ -126,6 +167,8 @@ class HaxBallExtendedHeadless {
         slicedRedTeam.forEach(redPlayer => this.#room.setPlayerTeam(redPlayer.id, 0));
     };
 
+
+
     moveNBlueTeamPlayersToSpecs = (N) => {
 
         const slicedBlueTeam = this.getBlueTeam().slice(0, N);
@@ -133,10 +176,85 @@ class HaxBallExtendedHeadless {
         slicedBlueTeam.forEach(bluePlayer => this.#room.setPlayerTeam(bluePlayer.id, 0));
     };
 
+
+
     getPlayersNumber = () => this.#room.getPlayerList().length;
 
+
+
     hasAdmin = () => this.#room.getPlayerList.some(player => player.admin === true);
+
+
+
     hasNotAdmin = () => !this.hasAdmin();
+
+
+
+    chooseRandomAdmin = () => {
+
+        const players = this.#room.getPlayerList();
+        const randomInteger = Math.floor(Math.random() * players.length);
+
+        this.#room.setPlayerAdmin(players[randomInteger].id, true);
+    };
+
+
+
+    removeAllAdmins = () => {
+
+        this.#room.getPlayerList().forEach(player => {
+            if (player.admin) this.#room.setPlayerAdmin(player.id, false);
+        });
+    };
+
+
+
+    setAntiDU = (state) => this.#allowDU = Boolean(!state);
+
+
+
+    getScoreTime = (unit = "seconds") => {
+
+        const ALLOWED_UNITS = ["milliseconds,seconds,minutes"];
+
+        if (ALLOWED_UNITS.includes(unit)) throw new Error(`only allowed units ${ALLOWED_UNITS}`);
+
+        const dividedBy = {
+            "milliseconds": 1 / 1000,
+            "seconds": 1,
+            "minutes": 60,
+        };
+
+        const currentTime = this.#room.getScores().time;
+
+        if (!currentTime) return -1;
+
+        return Math.floor(currentTime / dividedBy[unit]);
+    };
+
+
+
+    reset = () => {
+        this.#room.stopGame();
+        this.#room.startGame();
+    };
+
+
+
+    resetWithStadiumChange = (stadiumFileContents) => {
+        this.#room.stopGame();
+        this.#room.setCustomStadium(stadiumFileContents);
+        this.#room.startGame();
+    };
+
+    
+
+    resetWithLimitsChange = (scoreLimit, timeLimit) => {
+        this.#room.stopGame();
+        this.#room.setScoreLimit(scoreLimit);
+        this.#room.setTimeLimit(timeLimit);
+        this.#room.startGame();
+    };
 
 };
 
