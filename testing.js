@@ -3,7 +3,7 @@ const room = new HaxBallExtendedHeadless(
         roomName: "My room",
         maxPlayers: 16,
         noPlayer: true, // Remove host player (recommended!)
-        token: "thr1.AAAAAGKc7wKyOjyDfyJTtQ.Qdqvngu9pas",
+        token: "thr1.AAAAAGKdPQKGk9P25xmjLg.M0zrIc2P6YA",
         public:false,
     })
 );

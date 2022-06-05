@@ -9,8 +9,7 @@ class HaxBallExtendedHeadless {
 
     #state = "stopped";
 
-    #commands = null;
-    #showCommandsOnChat = null;
+    #commandSymbol = "!";
 
     constructor(room) {
 
@@ -62,43 +61,7 @@ class HaxBallExtendedHeadless {
             this.onGameUnpause && this.onGameUnpause(byPlayer)
         };
 
-        this.#room.onPlayerChat = (player, message) => {
-
-            const commandDetected = this.#commands && this.#isACommand(message);
-
-            if (commandDetected) {
-
-                const enteredCommandData = this.#getCommandData(message);
-
-                let existingCommand = this.#commands[enteredCommandData.name];
-
-
-                if (existingCommand) {
-
-                    existingCommand(player, enteredCommandData);
-
-                };
-
-            };
-
-            if (this.onPlayerChat) {
-
-                if (commandDetected && !this.#showCommandsOnChat) {
-
-                    this.onPlayerChat(player, message);
-                    return false;
-
-                } else {
-
-                    return this.onPlayerChat(player, message);
-
-                };
-            };
-
-            if (commandDetected && !this.#showCommandsOnChat) return false;
-
-        };
-
+        this.#room.onPlayerChat = (player, message) => this.onPlayerChat && this.onPlayerChat(player, message);
         this.#room.onTeamVictory = (scores) => this.onTeamVictory && this.onTeamVictory(scores);
         this.#room.onPlayerBallKick = (player) => this.onPlayerBallKick && this.onPlayerBallKick(player);
         this.#room.onTeamGoal = (team) => this.onTeamGoal && this.onTeamGoal(team);
@@ -170,33 +133,6 @@ class HaxBallExtendedHeadless {
     };
 
 
-
-    #validCommandList = (commands) => {
-
-        if (typeof commands !== "object") return false;
-
-        return !Object.entries(commands).some(command => (typeof command[0] !== "string" || typeof command[1] !== "function"));
-    };
-
-
-
-    #isACommand = (message) => message.charAt(0) === "!";
-
-
-
-    #getCommandData = (command) => {
-
-        const splittedData = command.slice(1).split(" ");
-
-        const name = splittedData[0];
-        const params = splittedData.slice(1);
-
-        return {
-            name,
-            params,
-        };
-
-    };
 
     /*----------------------------------------EXTENDED HEADLESS PUBLIC METHODS---------------------------------------------*/
 
@@ -385,7 +321,7 @@ class HaxBallExtendedHeadless {
 
     setAntiDU = (state, kickBecauseDU = "DU", ignoredAuthsDU = []) => {
         this.#allowDU = Boolean(!state);
-        this.#kickBecauseDU = kickBecause;
+        this.#kickBecauseDU = kickBecauseDU;
         this.#ignoredAuthsDU = [...ignoredAuthsDU];
     };
 
@@ -395,17 +331,32 @@ class HaxBallExtendedHeadless {
 
 
 
-    setCommands = (commands, showCommandsOnChat = true) => {
+    setCommandSymbol = (char) => {
 
-        if (this.#validCommandList(commands)) {
-            this.#commands = { ...commands };
-            this.#showCommandsOnChat = Boolean(showCommandsOnChat);
-        } else {
-            throw new Error("commands must be of the form {\"name1\": aFunction1, \"name2\": aFunction2}");
+        if (typeof char === "string" && char.length === 1) return this.#commandSymbol = char;
+
+        throw new Error("char must be a string of length 1");
+    };
+
+
+
+    messageIsACommand = (message) => message.charAt(0) === this.#commandSymbol;
+
+
+
+    getCommandParams = (command) => {
+
+        const splittedData = command.slice(1).split(" ");
+
+        const name = splittedData[0];
+        const params = splittedData.slice(1);
+
+        return {
+            name,
+            params,
         };
 
     };
-
 };
 
 
