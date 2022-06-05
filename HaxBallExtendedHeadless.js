@@ -10,6 +10,7 @@ class HaxBallExtendedHeadless {
     #state = "stopped";
 
     #commands = null;
+    #showCommandsOnChat = null;
 
     constructor(room) {
 
@@ -63,20 +64,39 @@ class HaxBallExtendedHeadless {
 
         this.#room.onPlayerChat = (player, message) => {
 
-            if (this.#commands && this.#isACommand(message)) {
+            const commandDetected = this.#commands && this.#isACommand(message);
+
+            if (commandDetected) {
 
                 const enteredCommandData = this.#getCommandData(message);
 
-                let foundExistingCommand = this.#commands.filter(command => command.name === enteredCommandData.name);
-                foundExistingCommand = foundExistingCommand[0];
+                let existingCommand = this.#commands[enteredCommandData.name];
 
-                if (foundExistingCommand[0]) {
-                    console.log(foundExistingCommand[0]);
+
+                if (existingCommand) {
+
+                    existingCommand(player, enteredCommandData);
+
                 };
 
             };
 
-            this.onPlayerChat && this.onPlayerChat(player, message)
+            if (this.onPlayerChat) {
+
+                if (commandDetected && !this.#showCommandsOnChat) {
+
+                    this.onPlayerChat(player, message);
+                    return false;
+
+                } else {
+
+                    return this.onPlayerChat(player, message);
+
+                };
+            };
+
+            if (commandDetected && !this.#showCommandsOnChat) return false;
+
         };
 
         this.#room.onTeamVictory = (scores) => this.onTeamVictory && this.onTeamVictory(scores);
@@ -153,24 +173,9 @@ class HaxBallExtendedHeadless {
 
     #validCommandList = (commands) => {
 
-        if (!Array.isArray(commands)) return false;
-        if (commands.length <= 0) return false;
+        if (typeof commands !== "object") return false;
 
-        let i = 0;
-
-        while (i < commands.length) {
-
-            let currentCommand = commands[i];
-
-            if (!currentCommand.hasOwnProperty("name") || !currentCommand.hasOwnProperty("does")) return false;
-
-            if (typeof currentCommand.name !== "string") return false;
-            if (typeof currentCommand.does !== "function") return false;
-
-            i++;
-        };
-
-        return true;
+        return !Object.entries(commands).some(command => (typeof command[0] !== "string" || typeof command[1] !== "function"));
     };
 
 
@@ -390,12 +395,13 @@ class HaxBallExtendedHeadless {
 
 
 
-    setCommands = (commands) => {
+    setCommands = (commands, showCommandsOnChat = true) => {
 
         if (this.#validCommandList(commands)) {
-            this.#commands = [...commands];
+            this.#commands = { ...commands };
+            this.#showCommandsOnChat = Boolean(showCommandsOnChat);
         } else {
-            throw new Error("commands must be of the form [{name:\"example1\", does: doSomething1},{name:\"example2\", does: doSomething2},...]");
+            throw new Error("commands must be of the form {\"name1\": aFunction1, \"name2\": aFunction2}");
         };
 
     };
