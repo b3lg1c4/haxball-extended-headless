@@ -63,8 +63,17 @@ class HaxBallExtendedHeadless {
 
         this.#room.onPlayerChat = (player, message) => {
 
-            if (this.#commands) {
-                //CHECK IF THIS IS IN THE CORRECT PLACE
+            if (this.#commands && this.#isACommand(message)) {
+
+                const enteredCommandData = this.#getCommandData(message);
+
+                let foundExistingCommand = this.#commands.filter(command => command.name === enteredCommandData.name);
+                foundExistingCommand = foundExistingCommand[0];
+
+                if (foundExistingCommand[0]) {
+                    console.log(foundExistingCommand[0]);
+                };
+
             };
 
             this.onPlayerChat && this.onPlayerChat(player, message)
@@ -165,6 +174,24 @@ class HaxBallExtendedHeadless {
     };
 
 
+
+    #isACommand = (message) => message.charAt(0) === "!";
+
+
+
+    #getCommandData = (command) => {
+
+        const splittedData = command.slice(1).split(" ");
+
+        const name = splittedData[0];
+        const params = splittedData.slice(1);
+
+        return {
+            name,
+            params,
+        };
+
+    };
 
     /*----------------------------------------EXTENDED HEADLESS PUBLIC METHODS---------------------------------------------*/
 
