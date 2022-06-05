@@ -22,7 +22,7 @@ class HaxBallExtendedHeadless {
         this.#room.onPlayerJoin = (player) => {
 
             if (!this.#allowDU && this.#isDU(player)) {
-                room.kickPlayer(player.id, this.#kickBecauseDU, false)
+                room.kickPlayer(player.id, this.#kickBecauseDU, false);
             } else {
                 this.#connectedPlayers.push(player);
             };
@@ -259,7 +259,7 @@ class HaxBallExtendedHeadless {
 
         const currentTime = this.#room.getScores().time;
 
-        if (!currentTime) return -1;
+        if (!currentTime) return null;
 
         return Math.floor(currentTime / dividedBy[unit]);
     };
@@ -345,6 +345,8 @@ class HaxBallExtendedHeadless {
 
 
     getCommandParams = (command) => {
+
+        if (!this.messageIsACommand(command)) return null;
 
         const splittedData = command.slice(1).split(" ");
 
