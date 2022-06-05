@@ -1,10 +1,15 @@
 class HaxBallExtendedHeadless {
 
     #room = null;
-
-    #connected_players = [];
+    #connectedPlayers = [];
 
     #allowDU = true;
+    #kickBecauseDU = "DU";
+    #ignoredAuthsDU = [];
+
+    #state = "stopped";
+
+    #commands = null;
 
     constructor(room) {
 
@@ -17,9 +22,9 @@ class HaxBallExtendedHeadless {
         this.#room.onPlayerJoin = (player) => {
 
             if (!this.#allowDU && this.#isDU(player)) {
-                room.kickPlayer(player.id, "DU", false)
+                room.kickPlayer(player.id, this.#kickBecauseDU, false)
             } else {
-                this.#connected_players.push(player);
+                this.#connectedPlayers.push(player);
             };
 
 
@@ -28,21 +33,50 @@ class HaxBallExtendedHeadless {
 
         this.#room.onPlayerLeave = (playerLeft) => {
 
-            this.#connected_players = [...this.#connected_players].filter(player => player.id !== playerLeft.id)
+            this.#connectedPlayers = [...this.#connectedPlayers].filter(player => player.id !== playerLeft.id)
             this.onPlayerLeave && this.onPlayerLeave(player)
         };
+
+        this.#room.onGameStart = (byPlayer) => {
+
+            this.#state = "playing";
+            this.onGameStart && this.onGameStart(byPlayer)
+        };
+
+        this.#room.onGameStop = (byPlayer) => {
+
+            this.#state = "stopped";
+            this.onGameStop && this.onGameStop(byPlayer)
+        };
+
+        this.#room.onGamePause = (byPlayer) => {
+
+            this.#state = "paused";
+            this.onGamePause && this.onGamePause(byPlayer)
+        };
+
+        this.#room.onGameUnpause = (byPlayer) => {
+
+            this.#state = "playing";
+            this.onGameUnpause && this.onGameUnpause(byPlayer)
+        };
+
+        this.#room.onPlayerChat = (player, message) => {
+
+            if (this.#commands) {
+                //CHECK IF THIS IS IN THE CORRECT PLACE
+            };
+
+            this.onPlayerChat && this.onPlayerChat(player, message)
+        };
+
         this.#room.onTeamVictory = (scores) => this.onTeamVictory && this.onTeamVictory(scores);
-        this.#room.onPlayerChat = (player, message) => this.onPlayerChat && this.onPlayerChat(player, message);
         this.#room.onPlayerBallKick = (player) => this.onPlayerBallKick && this.onPlayerBallKick(player);
         this.#room.onTeamGoal = (team) => this.onTeamGoal && this.onTeamGoal(team);
-        this.#room.onGameStart = (byPlayer) => this.onGameStart && this.onGameStart(byPlayer);
-        this.#room.onGameStop = (byPlayer) => this.onGameStop && this.onGameStop(byPlayer);
         this.#room.onPlayerAdminChange = (changedPlayer, byPlayer) => this.onPlayerAdminChange && this.onPlayerAdminChange(changedPlayer, byPlayer)
         this.#room.onPlayerTeamChange = (changedPlayer, byPlayer) => this.onPlayerTeamChange && this.onPlayerTeamChange(changedPlayer, byPlayer);
         this.#room.onPlayerKicked = (kickedPlayer, reason, ban, byPlayer) => this.onPlayerKicked && this.onPlayerKicked(kickedPlayer, reason, ban, byPlayer);
         this.#room.onGameTick = () => this.onGameTick && this.onGameTick();
-        this.#room.onGamePause = (byPlayer) => this.onGamePause && this.onGamePause(byPlayer);
-        this.#room.onGameUnpause = (byPlayer) => this.onGameUnpause && this.onGameUnpause(byPlayer);
         this.#room.onPositionsReset = () => this.onPositionsReset && this.onPositionsReset();
         this.#room.onPlayerActivity = (player) => this.onPlayerActivity && this.onPlayerActivity(player);
         this.#room.onStadiumChange = (newStadiumName, byPlayer) => this.onStadiumChange && this.onStadiumChange(newStadiumName, byPlayer);
@@ -89,15 +123,48 @@ class HaxBallExtendedHeadless {
 
     #isValidTeam = (team) => [0, 1, 2].includes(team);
 
+
+
     #getTeam = (team) => {
         if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
         const playerList = this.#room.getPlayerList();
         return playerList.filter(player => player.team === team);
     };
 
+
+
     #isDU = (player) => {
-        return this.#connected_players.some(cP => cP.name === player.name || cP.auth === player.auth || cP.conn === player.conn);
+
+        if (this.#ignoredAuthsDU.includes(player.auth)) return false;
+
+        return this.#connectedPlayers.some(cP => cP.name === player.name || cP.auth === player.auth);
     };
+
+
+
+    #validCommandList = (commands) => {
+
+        if (!Array.isArray(commands)) return false;
+        if (commands.length <= 0) return false;
+
+        let i = 0;
+
+        while (i < commands.length) {
+
+            let currentCommand = commands[i];
+
+            if (!currentCommand.hasOwnProperty("name") || !currentCommand.hasOwnProperty("does")) return false;
+
+            if (typeof currentCommand.name !== "string") return false;
+            if (typeof currentCommand.does !== "function") return false;
+
+            i++;
+        };
+
+        return true;
+    };
+
+
 
     /*----------------------------------------EXTENDED HEADLESS PUBLIC METHODS---------------------------------------------*/
 
@@ -125,6 +192,7 @@ class HaxBallExtendedHeadless {
 
 
     moveNextNSpecsToTeam = (team, N) => {
+
         if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
 
         const nextNSpecs = this.getSpecTeam().slice(0, N);
@@ -209,10 +277,6 @@ class HaxBallExtendedHeadless {
 
 
 
-    setAntiDU = (state) => this.#allowDU = Boolean(!state);
-
-
-
     getScoreTime = (unit = "seconds") => {
 
         const ALLOWED_UNITS = ["milliseconds,seconds,minutes"];
@@ -247,13 +311,66 @@ class HaxBallExtendedHeadless {
         this.#room.startGame();
     };
 
-    
+
 
     resetWithLimitsChange = (scoreLimit, timeLimit) => {
         this.#room.stopGame();
         this.#room.setScoreLimit(scoreLimit);
         this.#room.setTimeLimit(timeLimit);
         this.#room.startGame();
+    };
+
+
+
+    resetWithLimitsAndStadiumChange = (scoreLimit, timeLimit, stadiumFileContents) => {
+        this.#room.stopGame();
+        this.#room.setScoreLimit(scoreLimit);
+        this.#room.setTimeLimit(timeLimit);
+        this.#room.setCustomStadium(stadiumFileContents);
+        this.#room.startGame();
+    };
+
+
+
+    isStopped = () => this.#state === "stopped";
+    isNotStopped = () => !this.isStopped();
+
+
+
+    isPaused = () => this.#state === "paused";
+    isNotPaused = () => !this.isPaused();
+
+
+
+    isPlaying = () => this.#state === "playing";
+    isNotPlaying = () => !this.isPlaying();
+
+
+
+    getState = () => this.#state;
+
+
+
+    setAntiDU = (state, kickBecauseDU = "DU", ignoredAuthsDU = []) => {
+        this.#allowDU = Boolean(!state);
+        this.#kickBecauseDU = kickBecause;
+        this.#ignoredAuthsDU = [...ignoredAuthsDU];
+    };
+
+
+
+    getConnectedPlayers = () => this.#connectedPlayers;
+
+
+
+    setCommands = (commands) => {
+
+        if (this.#validCommandList(commands)) {
+            this.#commands = [...commands];
+        } else {
+            throw new Error("commands must be of the form [{name:\"example1\", does: doSomething1},{name:\"example2\", does: doSomething2},...]");
+        };
+
     };
 
 };
