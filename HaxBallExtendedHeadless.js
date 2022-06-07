@@ -34,7 +34,7 @@ class HaxBallExtendedHeadless {
         this.#room.onPlayerLeave = (playerLeft) => {
 
             this.#connectedPlayers = [...this.#connectedPlayers].filter(player => player.id !== playerLeft.id)
-            this.onPlayerLeave && this.onPlayerLeave(player)
+            this.onPlayerLeave && this.onPlayerLeave(playerLeft)
         };
 
         this.#room.onGameStart = (byPlayer) => {
