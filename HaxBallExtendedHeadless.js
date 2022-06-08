@@ -25,40 +25,41 @@ class HaxBallExtendedHeadless {
                 room.kickPlayer(player.id, this.#kickBecauseDU, false);
             } else {
                 this.#connectedPlayers.push(player);
+                this.onPlayerJoin && this.onPlayerJoin(player);
             };
 
 
-            this.onPlayerJoin && this.onPlayerJoin(player)
+
         };
 
         this.#room.onPlayerLeave = (playerLeft) => {
 
-            this.#connectedPlayers = [...this.#connectedPlayers].filter(player => player.id !== playerLeft.id)
-            this.onPlayerLeave && this.onPlayerLeave(playerLeft)
+            this.#connectedPlayers = [...this.#connectedPlayers].filter(player => player.id !== playerLeft.id);
+            this.onPlayerLeave && this.onPlayerLeave(playerLeft);
         };
 
         this.#room.onGameStart = (byPlayer) => {
 
             this.#state = "playing";
-            this.onGameStart && this.onGameStart(byPlayer)
+            this.onGameStart && this.onGameStart(byPlayer);
         };
 
         this.#room.onGameStop = (byPlayer) => {
 
             this.#state = "stopped";
-            this.onGameStop && this.onGameStop(byPlayer)
+            this.onGameStop && this.onGameStop(byPlayer);
         };
 
         this.#room.onGamePause = (byPlayer) => {
 
             this.#state = "paused";
-            this.onGamePause && this.onGamePause(byPlayer)
+            this.onGamePause && this.onGamePause(byPlayer);
         };
 
         this.#room.onGameUnpause = (byPlayer) => {
 
             this.#state = "playing";
-            this.onGameUnpause && this.onGameUnpause(byPlayer)
+            this.onGameUnpause && this.onGameUnpause(byPlayer);
         };
 
         this.#room.onPlayerChat = (player, message) => this.onPlayerChat && this.onPlayerChat(player, message);
@@ -344,7 +345,7 @@ class HaxBallExtendedHeadless {
 
 
 
-    getCommandParams = (command) => {
+    getCommandInformation = (command) => {
 
         if (!this.messageIsACommand(command)) return null;
 
