@@ -320,7 +320,7 @@ Prevents the same user from the same device access to the room more than once at
 
 `state` will be taken to determine whether enable or not the AntiDU.
 `kickBecauseDU` is the text the user will see when he is kicked because DU.
-`ignoredAuthsDU` is a list of auths the AntiDU will take to skip the verification. If we put our auth on it, the AntiDU no matter is enabled will allow us to be in the room with the same device more than once at the time. This can be used, for example, for testing purposes.
+`ignoredAuthsDU` is a list of auths the AntiDU will take to skip the verification. If we put our auth on it, the AntiDU no matter is enabled, will allow us to be in the room with the same device more than once at the time. This can be used, for example, for testing purposes.
 
 Usage example:
 
@@ -335,7 +335,7 @@ room.setAntiDU(true,"kicked by DU",ignoredAuths);
 <code style="margin:0">getConnectedPlayers() : PlayerObject[]</code>
 </p>
 
-Returns a more detailed list about all the users in the room.
+Returns a more detailed list about all the players in the room.
 
 
 <h3 style="font-size: 1.25em"><code style="font-size:inherit">messageIsACommand</code></h3>
@@ -353,7 +353,7 @@ Returns whether the entered message is a valid command. In the context, a messag
 
 Sets the `CommandSymbol` which a message is identified as a command.
 
-`char` only accepts a string of lenght `1`(a simple character).
+`char` only accepts a string of length `1`(a simple character).
 
 
 <h3 style="font-size: 1.25em"><code style="font-size:inherit">getCommandInformation</code></h3>
