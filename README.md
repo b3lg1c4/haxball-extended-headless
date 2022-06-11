@@ -316,10 +316,10 @@ Returns the state of the room. The possible values are `["stopped","playing","pa
 <code style="margin:0">setAntiDU(state : bool, kickBecauseDU : string, ignoredAuthsDU : string[]) : void</code>
 </p>
 
-Prevents the same user from the same device access to the room more than once at the time. This is achieved kicking him.
+Prevents the same player from the same device access to the room more than once at the time. This is achieved kicking him.
 
 `state` will be taken to determine whether enable or not the AntiDU.
-`kickBecauseDU` is the text the user will see when he is kicked because DU.
+`kickBecauseDU` is the text the player will see when he is kicked because DU.
 `ignoredAuthsDU` is a list of auths the AntiDU will take to skip the verification. If we put our auth on it, the AntiDU no matter whether is enabled, will allow us to be in the room with the same device more than once at the time. This can be used, for example, for testing purposes.
 
 Usage example:
