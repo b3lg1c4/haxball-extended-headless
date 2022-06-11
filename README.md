@@ -362,6 +362,7 @@ Sets the `CommandSymbol` which a message is identified as a command.
 </p>
 
 Returns the `name` and the `params` of the entered command. Is not neccesary to use `messageIsACommand` to validate it, because that will be made within the method.
+If the entered message is not a valid command, it will be returned `null`.
 
 Usage Example: 
 
