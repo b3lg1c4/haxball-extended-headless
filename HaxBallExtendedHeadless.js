@@ -331,6 +331,10 @@ class HaxBallExtendedHeadless {
     getConnectedPlayers = () => this.#connectedPlayers;
 
 
+    
+    messageIsACommand = (message) => message.charAt(0) === this.#commandSymbol;
+
+
 
     setCommandSymbol = (char) => {
 
@@ -340,11 +344,7 @@ class HaxBallExtendedHeadless {
     };
 
 
-
-    messageIsACommand = (message) => message.charAt(0) === this.#commandSymbol;
-
-
-
+    
     getCommandInformation = (command) => {
 
         if (!this.messageIsACommand(command)) return null;
