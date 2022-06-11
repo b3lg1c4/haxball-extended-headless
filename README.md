@@ -137,21 +137,21 @@ Moves the next `N` players from the current Blue Team list to Spect Team. If the
 <p>
 <code style="margin:0">getPlayersNumber() : int</code>
 </p>
-Returns the current amount of players in the host.
+Returns the current amount of players in the room.
 <br>
 
 <h3 style="font-size: 1.25em"><code style="font-size:inherit">hasAdmin</code></h3>
 <p>
 <code style="margin:0">hasAdmin() : bool</code>
 </p>
-Returns whether the host has at least one player with admin permission.
+Returns whether the room has at least one player with admin permission.
 <br>
 
 <h3 style="font-size: 1.25em"><code style="font-size:inherit">hasNotAdmin</code></h3>
 <p>
 <code style="margin:0">hasNotAdmin() : bool</code>
 </p>
-Returns whether has **not** at least one player with admin permission.
+Returns whether the room has **not** at least one player with admin permission.
 <br>
 
 ```javascript
@@ -165,7 +165,7 @@ if(!room.hasAdmin()) ...
 <p>
 <code style="margin:0">chooseRandomAdmin() : void</code>
 </p>
-Grabs a random player and gives him admin permission.
+Gives admin permission to a random player.
 <br>
 
 <h3 style="font-size: 1.25em"><code style="font-size:inherit">removeAllAdmins</code></h3>
