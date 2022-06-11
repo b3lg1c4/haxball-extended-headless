@@ -137,7 +137,7 @@ class HaxBallExtendedHeadless {
 
     /*----------------------------------------EXTENDED HEADLESS PUBLIC METHODS---------------------------------------------*/
 
-    getSpecTeam = () => this.#getTeam(0);
+    getSpectTeam = () => this.#getTeam(0);
 
 
 
@@ -149,43 +149,43 @@ class HaxBallExtendedHeadless {
 
 
 
-    moveNextSpecToTeam = (team) => {
+    moveNextSpectToTeam = (team) => {
         if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
 
-        const nextSpec = this.getSpecTeam()[0];
+        const nextSpect = this.getSpectTeam()[0];
 
-        if (nextSpec) this.#room.setPlayerTeam(nextSpec.id, team);
+        if (nextSpect) this.#room.setPlayerTeam(nextSpect.id, team);
 
     };
 
 
 
-    moveNextNSpecsToTeam = (team, N) => {
+    moveNextNSpectsToTeam = (team, N) => {
 
         if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
 
-        const nextNSpecs = this.getSpecTeam().slice(0, N);
+        const nextNSpects = this.getSpecTeam().slice(0, N);
 
-        nextNSpecs.forEach(spec => this.#room.setPlayerTeam(spec.id, team));
+        nextNSpects.forEach(spect => this.#room.setPlayerTeam(spect.id, team));
 
     };
 
 
 
-    moveAllSpecsToTeam = (team) => {
+    moveAllSpectsToTeam = (team) => {
 
         if (!this.#isValidTeam(team)) throw new Error("team must be 0, 1 or 2");
 
-        this.getSpecTeam().forEach(spec => this.#room.setPlayerTeam(spec.id, team));
+        this.getSpectTeam().forEach(spect => this.#room.setPlayerTeam(spect.id, team));
     };
 
 
 
-    moveAllRedTeamToSpecs = () => this.getRedTeam().forEach(redPlayer => this.#room.setPlayerTeam(redPlayer.id, 0));
+    moveAllRedTeamToSpects = () => this.getRedTeam().forEach(redPlayer => this.#room.setPlayerTeam(redPlayer.id, 0));
 
 
 
-    moveAllBlueTeamToSpecs = () => this.getBlueTeam().forEach(bluePlayer => this.#room.setPlayerTeam(bluePlayer.id, 0));
+    moveAllBlueTeamToSpects = () => this.getBlueTeam().forEach(bluePlayer => this.#room.setPlayerTeam(bluePlayer.id, 0));
 
 
 
@@ -197,7 +197,7 @@ class HaxBallExtendedHeadless {
 
 
 
-    moveNRedTeamPlayersToSpecs = (N) => {
+    moveNRedTeamPlayersToSpects = (N) => {
 
         const slicedRedTeam = this.getRedTeam().slice(0, N);
 
@@ -206,7 +206,7 @@ class HaxBallExtendedHeadless {
 
 
 
-    moveNBlueTeamPlayersToSpecs = (N) => {
+    moveNBlueTeamPlayersToSpects = (N) => {
 
         const slicedBlueTeam = this.getBlueTeam().slice(0, N);
 
